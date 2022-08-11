@@ -1,10 +1,11 @@
 %find the qmi that is satisfied for all plants consistent with data
 n = 6;
 m = 4;
-T = 15;
+% T = 15;
+T = 40;
 
 %% simulate system
-rng(30, 'twister');
+rng(40, 'twister');
 sys = drss(n, n, m);
 
 A = sys.a;

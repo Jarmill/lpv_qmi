@@ -16,7 +16,7 @@ W = epsilon*normalize(W, 1, 'norm', 2);
 IW = [eye(d); W'];
 Phi = blkdiag(epsilon^2*T*eye(d), -eye(T));
 % 
-X = IW'*Phi*IW;
-eX = eig(X)
+MS = IW'*Phi*IW;
+eMS = eig(MS)
 
 % M = [epsilon^2*eye(N), W; W', eye(d)]
