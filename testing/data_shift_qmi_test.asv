@@ -1,0 +1,36 @@
+n = 3;
+m = 2;
+T = 10;
+
+
+rng(30, 'twister');
+sys = drss(n, n, m);
+
+A = sys.a;
+B = sys.b;
+
+x0 = [1; 0; 0];
+epsilon = 0.1;
+u_bnd = 1;
+
+X = [x0, zeros(n, T)];
+U = zeros(m, T);
+W = zeros(n, T);
+
+%main simulation loop
+xcurr = x0;
+for i = 1:T
+    %inputs
+    ucurr = randn(m, 1)*u_bnd;
+    wcurr = randn(n, 1);
+    wcurr = epsilon*wcurr/norm(wcurr, 2);
+    
+    %p
+    xnext = A*xcurr + B*ucurr + wcurr;
+    
+    
+    
+end
+
+
+% sysfull = ss(A, B, eye(n), zeros(n, m), 1);
