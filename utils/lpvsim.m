@@ -64,14 +64,13 @@ classdef lpvsim
                 %inputs
                 ucurr = obj.sampler.u();
                 wcurr = obj.sampler.w()*epsilon;
-                thcurr = obj.sampler.th();  %sample in th_bnd-scaled Linf ball
+                thcurr = obj.sampler.th();
                 
                 %propagation
                 xnext = sys.B*ucurr + wcurr;
                 for k = 1:obj.L
                     xnext = xnext + sys.A{k}*xcurr*thcurr(k);
-                end
-                %     xnext = A*xcurr + B*ucurr + wcurr;
+                end                
                 
                 %storage
                 X(:, i+1) = xnext;
@@ -87,6 +86,9 @@ classdef lpvsim
             out.Th = Th;
             out.epsilon = epsilon;
             out.ground_truth = struct('W', W_true, 'A', sys.A, 'B', sys.B);
+            out.n = obj.n;
+            out.m = obj.m;
+            out.L = obj.L;
 
         end
 
@@ -99,16 +101,17 @@ classdef lpvsim
             A = cell(obj.L, 1);
             for i = 1:obj.L
                 sys= drss(obj.n, obj.n, obj.m);
-                A{i} = A_scale*sys.a;
+                A{i} = A_scale*sys.a; %raise the likelihood that some systems are unstable
                 if i == 1
                     B = sys.b;
                 end
             end
+            
+            %package the output
 
             sys_lpv = struct;
             sys_lpv.A = A;
             sys_lpv.B = B;
-%             \'A', A, 'B', B); %defaults to cell arrays
         end
 
 
