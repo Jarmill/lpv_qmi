@@ -80,12 +80,21 @@ classdef lpvsim
                 xcurr = xnext;
             end
             
+
+            ground_truth = struct;
+            ground_truth.A = sys.A;
+            ground_truth.B = sys.B;
+            ground_truth.W = W_true;
+            ground_truth.W2 = sum(W_true.^2, 1);
+            
+%             struct('W', W_true, 'A', sys.A, 'B', sys.B)
+
             %package up the output
             out.X = X;
             out.U = U;
             out.Th = Th;
-            out.epsilon = epsilon;
-            out.ground_truth = struct('W', W_true, 'A', sys.A, 'B', sys.B);
+            out.epsilon = epsilon;            
+            out.ground_truth = ground_truth;
             out.n = obj.n;
             out.m = obj.m;
             out.L = obj.L;
