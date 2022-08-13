@@ -1,4 +1,4 @@
-LS = lpvsim(3, 2, 2);
+LS = lpvsim(4, 2, 2);
 out = LS.sim(10);
 th_bnd = 1;
 
@@ -35,7 +35,7 @@ sol = optimize(cons, 0, []);
 Y_rec = value(Y);
 Y1_rec = value(Y1);
 Y2_rec = value(Y2);
-Y2_rec = value(Y3);
+Y3_rec = value(Y3);
 M1_rec = value(M1);
 M2_rec = value(M2);
 M3_rec = value(M3);
@@ -46,29 +46,41 @@ K3 = (Y_rec \ M3_rec')';
 
 % Ac1_rec = Vth(1)*A + B*K1;
 % Ac2_rec = Vth(2)*A + B*K2;
+Ac1_rec = (Vth(1, 1)*A1 + Vth(2, 1)*A2)+ B*K1;
+Ac2_rec = (Vth(1, 2)*A1 + Vth(2, 2)*A2)+ B*K2;
+Ac3_rec = (Vth(1, 3)*A1 + Vth(2, 3)*A2)+ B*K3;
+
+
 
 e1 = eig(Ac1_rec);
 e2 = eig(Ac2_rec);
+e3 = eig(Ac3_rec);
 
-[e1, e2]
+[e1, e2, e3]
 
 
 %% form and evaluate QMI
 
-IW = [eye(out.n); A'; B'];
+IW = [eye(out.n); A1'; A2'; B'];
 
 
 V1 = Vth(:, 1);
-CT1_bot = [kron(V1*V1', Y_rec), kron(V1, M1_rec)'; kron(V1, M1_rec), M1_rec * (Y_rec \ M1_rec')];
+CT1_bot = [kron(V1*V1', Y_rec), kron(V1, M1_rec'); kron(V1', M1_rec), M1_rec * (Y_rec \ M1_rec')];
 
 V2 = Vth(:, 2);
-CT2_bot = [kron(V2*V2', Y_rec), kron(V2, M2_rec)'; kron(V2, M2_rec), M2_rec * (Y_rec \ M2_rec')];
+CT2_bot = [kron(V2*V2', Y_rec), kron(V2, M2_rec'); kron(V2', M2_rec), M2_rec * (Y_rec \ M2_rec')];
+
+V3 = Vth(:, 3);
+CT3_bot = [kron(V3*V3', Y_rec), kron(V3, M3_rec'); kron(V3', M3_rec), M3_rec * (Y_rec \ M3_rec')];
+
 
 CT1 = blkdiag(Y_rec, -CT1_bot);
 CT2 = blkdiag(Y_rec, -CT2_bot);
+CT3 = blkdiag(Y_rec, -CT3_bot);
 
 Q1 = IW'*CT1*IW;
 Q2 = IW'*CT2*IW;
+Q3 = IW'*CT3*IW;
 
 
 

@@ -1,10 +1,14 @@
-LS = lpvsim(3, 2, 2);
+LS = lpvsim(4, 3, 2);
 out = LS.sim(10);
 th_bnd = 1;
 
 %vertices of polytope Theta
 Vth = [1 0 1;
        0 1 1];
+   
+   n = LS.n;
+   m = LS.m;
+   L = LS.L
 
 
 %% formulate LMI
@@ -86,9 +90,12 @@ Q3 = IW'*CT3*IW;
 
 
 
+%% test indexing
 
 
-
+CT1_schur = [kron(V1*V1', Y_rec), kron(V1, M1_rec'), zeros(n*L, n);
+    kron(V1', M1_rec), zeros(m,m), M1_rec;
+    zeros(n, L*n), M1_rec', Y_rec];
 
 
 
