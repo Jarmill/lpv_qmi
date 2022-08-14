@@ -144,6 +144,38 @@ classdef lpvstab
                 out.eig_Cv(:, v) =eig(out.Cv{v});
             end
         end
+        
+        function [valid, eig_out] = validate_stab_multi(obj, sys, Th_vert, K)
+            if ~iscell(sys)
+                sys = {sys};
+            end
+            Nsys = length(sys);
+            valid = zeros(Nsys, 1);
+            eig_out = cell(Nsys, 1);
+            
+            for i = 1:length(sys) 
+                [valid(i), eig_out{i}] = obj.validate_stab(sys{i}, Th_vert, K);
+            end
+        end
+        
+        function [valid, eig_out] = validate_stab(obj, sys, Th_vert, K)
+            %validate stability of every vertex given stab and the
+            %controller K
+            
+            n = size(sys.A{1}, 1);
+            [L, Nv] = size(Th_vert);
+            eig_out = zeros(n, Nv);
+            
+            for v = 1:Nv
+                Acl = sys.B * K{v};
+                for i = 1:L
+                    Acl = Acl + sys.A{i}*Th_vert(i, v);
+                end
+                eig_out(:, v) = eig(Acl);
+            end
+            
+            valid = all(abs(eig_out) < 1, 'all');
+        end
     end
 end
 

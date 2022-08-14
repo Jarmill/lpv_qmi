@@ -54,7 +54,7 @@ W2_rec = sum(W_rec.^2, 1);
 
 IW = [eye(n); A_rec'; B_rec'];
 
-Psi = sample_matrix([Xn, Xp(:, end)], U, epsilon);
+Psi = sample_matrix_lti([Xn, Xp(:, end)], U, epsilon);
 
 MS = IW' * Psi * IW;
 eMS = eig(MS)

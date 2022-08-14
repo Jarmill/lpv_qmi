@@ -26,8 +26,7 @@ classdef lpvsim
 
             obj.sampler = struct('th', @() 2*rand(obj.L,1)-1, ...
                                  'u', @(th, x) 2*rand(obj.m, 1)-1, ...
-                                 'w', @() ball_sample(1, obj.n)');
-%                                  'w', @() normalize(randn(obj.n,1), 1, 'norm', 2));
+                                 'w', @() normalize(randn(obj.n,1), 1, 'norm', 2));
 
             %             obj.Property1 = inputArg1 + inputArg2;
         end
@@ -128,8 +127,8 @@ classdef lpvsim
         end
         
         function sys_smp = sample_sys(obj, traj, Nsys)
-            %sample a set of systems consistent with the data
-            %optima of linear objective over the quadratic region
+            %should find
+            
             if nargin <3
                 Nsys = 1;
             end
@@ -146,38 +145,15 @@ classdef lpvsim
             W = Xp -B*traj.U;
             for k = 1:obj.L
                 A{k} = sdpvar(n, n, 'full');
-                W = W - A{k}*(traj.Th(k, :) .* Xn);
+                W = W - A{k}*Xn.*Th(k, :);
             end                
             
             W2 = sum(W.^2, 1);
 
             cons = (W2' <= traj.epsilon^2);
             
-            sys_smp = cell(Nsys, 1);
-            %I'm not sure why the yalmip optimizer isn't working here.
-%             opts = sdpsettings('solver','mosek', 'verbose', 2);
-            opts = sdpsettings('solver','mosek', 'verbose', 0);
-
+            sys_smp = cell(Nsys, 1)
             for i = 1:Nsys
-%                 sys_curr = struct('A', [], 'B', []);
-                CB = randn(n, m);
-                
-                objective = sum(CB.*B, 'all');
-                for k = 1:obj.L
-                    CA = randn(n, n);
-                    objective = objective + sum(CA.*A{k}, 'all');
-                end
-                %solve the program                
-                sol = optimize(cons, objective, opts);
-                
-                %recover the solution
-                sys_curr = struct;
-                sys_curr.B = value(B);
-                sys_curr.A = cellfun(@value, A, 'UniformOutput', false);
-                sys_curr.W2 = value(W2);
-                sys_smp{i} = sys_curr;
-            end
-
 
             
         end
