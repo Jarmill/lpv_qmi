@@ -133,8 +133,8 @@ classdef lpvsim
             if nargin <3
                 Nsys = 1;
             end
-            [n, T] = size(traj.X);
-            m = size(traj.U, 1);
+            n = size(traj.X,1);
+            [m, T] = size(traj.U);
             L = size(traj.Th, 1);
             
             Xp = traj.X(:, 2:end);
@@ -149,9 +149,13 @@ classdef lpvsim
                 W = W - A{k}*(traj.Th(k, :) .* Xn);
             end                
             
-            W2 = sum(W.^2, 1);
+            cons = [];
+            for t = 1:T
+                cons = [cons; norm(W(:, t), 2) <= traj.epsilon]; 
+            end
+%             W2 = sum(W.^2, 1);
 
-            cons = (W2' <= traj.epsilon^2);
+%             cons = (W2' <= traj.epsilon^2);
             
             sys_smp = cell(Nsys, 1);
             %I'm not sure why the yalmip optimizer isn't working here.
@@ -174,7 +178,9 @@ classdef lpvsim
                 sys_curr = struct;
                 sys_curr.B = value(B);
                 sys_curr.A = cellfun(@value, A, 'UniformOutput', false);
-                sys_curr.W2 = value(W2);
+%                 sys_curr.W2 = value(W2);
+                sys_curr.W = value(W);
+                sys_curr.Wnorm = sqrt(sum(value(W).^2, 1));
                 sys_smp{i} = sys_curr;
             end
 

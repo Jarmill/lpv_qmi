@@ -82,7 +82,7 @@ classdef lpvstab
             
             if sol.problem==0
                 %successful trajectory execution
-                out = obj.recover(vars);
+                out = obj.recover(vars, sol);
             end
         end           
         
@@ -117,10 +117,11 @@ classdef lpvstab
             vars_vert = struct('M', M, 'a', a, 'b', b, 'Cv', Cv);
         end
         
-        function out = recover(obj, vars)
+        function out = recover(obj, vars, sol)
             %RECOVER get the controllers and parameters
             out = struct;
             %variables
+            out.sol = sol;
             out.a = value(vars.a);
             out.b = value(vars.b);
             
