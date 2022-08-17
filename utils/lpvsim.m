@@ -6,6 +6,7 @@ classdef lpvsim
         n = 3;      %number of states
         m = 2;      %number of inputs
         L = 2;      %number of parameters
+        epsilon = 0.1;
 
         sampler = [];
 
@@ -14,15 +15,20 @@ classdef lpvsim
 
     methods
 
-        function obj = lpvsim(n, m, L)
+        function obj = lpvsim(n, m, L, epsilon)
             %UNTITLED Construct an instance of this class
             %   Detailed explanation goes here
 
-            if nargin == 3
+            if nargin >= 3
                 obj.n = n;
                 obj.m = m;
                 obj.L = L;
             end
+            
+            if nargin ==4
+                obj.epsilon = epsilon;
+            end
+                
 
             obj.sampler = struct('th', @() 2*rand(obj.L,1)-1, ...
                                  'u', @(th, x) 2*rand(obj.m, 1)-1, ...
@@ -32,7 +38,7 @@ classdef lpvsim
             %             obj.Property1 = inputArg1 + inputArg2;
         end
 
-        function out = sim(obj, T, sys, epsilon, x0)
+        function out = sim(obj, T, sys, x0)
             %simulate an LPV trajectory with individual sample noise bound
             %epsilon (L2 norm)
             out = struct;
@@ -44,12 +50,7 @@ classdef lpvsim
             if nargin < 3
                 sys = obj.rand_sys();
             end
-
             if nargin < 4
-                epsilon = 0.1;
-            end
-            
-            if nargin < 5
                 x0 = zeros(obj.n, 1);
                 x0(1) = 1;
             end
@@ -66,7 +67,7 @@ classdef lpvsim
             for i = 1:T
                 %inputs
                 
-                wcurr = obj.sampler.w()*epsilon;
+                wcurr = obj.sampler.w()*obj.epsilon;
                 thcurr = obj.sampler.th();
                 ucurr = obj.sampler.u(thcurr, xcurr);
                 
@@ -97,7 +98,7 @@ classdef lpvsim
             out.X = X;
             out.U = U;
             out.Th = Th;
-            out.epsilon = epsilon;            
+            out.epsilon = obj.epsilon;            
             out.ground_truth = ground_truth;
             out.n = obj.n;
             out.m = obj.m;
