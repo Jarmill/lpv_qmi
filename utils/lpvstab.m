@@ -18,6 +18,7 @@ classdef lpvstab
        
         
         opts = sdpsettings('solver', 'mosek');
+%         opts = sdpsettings('solver', 'cdcs');
     end
     
     methods
