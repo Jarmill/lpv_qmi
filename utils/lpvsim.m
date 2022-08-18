@@ -71,7 +71,8 @@ classdef lpvsim
                 thcurr = obj.sampler.th();
                 ucurr = obj.sampler.u(thcurr, xcurr);
                 
-                %propagation
+                %propagation 
+                %this is where the noise enters (process ?)
                 xnext = sys.B*ucurr + wcurr;
                 for k = 1:obj.L
                     xnext = xnext + sys.A{k}*xcurr*thcurr(k);
