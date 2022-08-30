@@ -1,6 +1,6 @@
 %generate the trajectory
 SOLVE = 1;
-SAMPLE = 0;
+SAMPLE = 1;
 PLOT = 1;
 
 rng(40, 'twister');
@@ -21,11 +21,17 @@ epsilon = 0.1;
 % epsilon = 0.25;
 LS = lpvsim(n, m, L, epsilon);
 % traj = LS.sim(Tmax);
-traj = LS.sim(Tmax);
 
 Th_vert = [-1 -1 1 1;
            1  -1 1 -1];
 
+Th_shift = [1; 0];
+Th_vert = Th_vert + Th_shift;
+LS.sampler.th = @() (2*rand(2, 1) - 1) + Th_shift;
+       
+traj = LS.sim(Tmax);
+
+       
 % Th_vert = Th_vert + [0; 0.5];
 %run QMI solver
 if SOLVE

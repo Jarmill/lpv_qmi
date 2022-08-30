@@ -1,32 +1,42 @@
 %generate the trajectory
 SOLVE = 1;
 SAMPLE = 0;
-PLOT = 1;
+PLOT = 0;
 
 rng(40, 'twister');
 n = 2;
 m = 2;
-L = 2;
-Tmax = 35;
+L = 3;
+% Tmax = 35;
+% Tmax = 40;
 % Tmax = 45;
 % 
 
 % n = 3;
 % m = 2;
 % L = 2;
-% Tmax = 35;
+Tmax = 50;
 
 
 epsilon = 0.1;
 % epsilon = 0.25;
-LS = lpvsim(n, m, L, epsilon);
 % traj = LS.sim(Tmax);
-traj = LS.sim(Tmax);
 
-Th_vert = [-1 -1 1 1;
-           1  -1 1 -1];
+
+% Th_vert = [-1 -1 1 1;
+%            1  -1 1 -1];
+
+Th_vert = [1 1 1 1;
+          0.2 0.2 -0.2 -0.2;
+          0.2 0.2 0.4 0.4];
 
 % Th_vert = Th_vert + [0; 0.5];
+LS = lpvsim(n, m, L, epsilon);
+LS.sampler.th = @() sample_th(Th_vert);
+
+
+
+traj = LS.sim(Tmax);
 %run QMI solver
 if SOLVE
 LP = lpvstab(traj);
@@ -36,7 +46,8 @@ disp(out.sol.problem)
 end
 if SAMPLE
 %% acquire samples
-Nsys = 15;
+Nsys = 10;
+
 sys_smp = LS.sample_sys(traj, Nsys);
 
 %% validate samples

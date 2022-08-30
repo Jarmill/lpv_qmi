@@ -21,11 +21,16 @@ epsilon = 0.1;
 % epsilon = 0.25;
 LS = lpvsim(n, m, L, epsilon);
 % traj = LS.sim(Tmax);
-traj = LS.sim(Tmax);
 
 Th_vert = [-1 -1 1 1;
            1  -1 1 -1];
 
+Th_shift = [0; 0.5];
+LS.sampler.th = @() 2*rand()
+       
+traj = LS.sim(Tmax);
+
+       
 % Th_vert = Th_vert + [0; 0.5];
 %run QMI solver
 if SOLVE
