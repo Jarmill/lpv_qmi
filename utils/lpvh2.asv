@@ -1,4 +1,4 @@
-classdef lpvstab
+classdef lpvh2 < lpvstab
     %LPVSTAB stabilizing control of LPV systems using QMIs    
     
     %in experiments, stick with individual sample noise bounds.
@@ -6,91 +6,73 @@ classdef lpvstab
     
     properties
         
-        %start traj with only one trajectory, then expand to multiple
-        traj; %trajectory trace
-        
-        Psi; %data matrix 
-        Psi_E; %data matrix with zero padding
-        
-%         vars;
-        
-        delta = 1e-5; %tolerance for being positive (positive definite)
-       
-        
-        opts = sdpsettings('solver', 'mosek');
-%         opts = sdpsettings('solver', 'cdcs');
     end
     
     methods
-        function obj = lpvstab(traj)
+        function obj = lpvh2(traj)
             %LPVSTAB Construct an instance of this class
             %   Detailed explanation goes here
 %             obj.Property1 = inputArg1 + inputArg2;
-            obj.traj = traj;
-            
-            obj.Psi = sample_matrix(traj.X, traj.U, traj.epsilon, traj.Th);
-            
-            obj.Psi_E = blkdiag(obj.Psi, zeros(obj.traj.n));            
+            obj@lpvstab(traj);         
         end
         
-        function [out] = stab(obj, Th_vert)
-            %STAB: main stabilization routine and execution
-            [cons, vars] = obj.make_program(Th_vert);
-            out = obj.solve_program(cons, 0, vars);
+        function [out] = h2(obj, Th_vert, C, D, F)
+            %h2: main h2 control routine and execution
+            [cons, vars] = obj.make_program(Th_vert, C, D, F);
+            out = obj.solve_program(cons, trace(vars.Z), vars);
         end
         
         %% form and solve the program
-        function [cons, vars] = make_program(obj, Th_vert)
+        function [cons, vars] = make_program(obj, Th_vert, C, D, F)
             %MAKE_PROGRAM form the LMI program in YALMIP
             
-            %Th_vert: vertices of parameter region
+            %Th_vert: vertices of parameter region                        
                              
             n = obj.traj.n;
             Nv = size(Th_vert, 2);
             
+            Nz = size(C, 1);
+            
             Y = sdpvar(n, n);
+            Z = sdpvar(Nz, Nz);
 
             %storage of variables
             vars = struct;
             vars.Y = Y;
             vars.M = cell(Nv, 1);
             vars.Cv = cell(Nv, 1);
+            vars.Zmat = cell(Nv, 1);
             vars.a = zeros(Nv, 1, 'like', sdpvar);
             vars.b = zeros(Nv, 1, 'like', sdpvar);
             
+            %specifically for h2 norm control
+%             vars.gamma2 = sdpvar(1,1);
+            vars.Z = Z;
+            
             %storage of constraints
-            cons = (Y >= eye(obj.traj.n)*obj.delta);
+            cons = [(Y >= eye(obj.traj.n)*obj.delta); Z >= 0];
             %iterate through each subsystem and generate QMI
             for v = 1:Nv
                 thv = Th_vert(:, v);
                 
-                [cons_vert, vars_vert] = obj.vertex_qmi(Y, thv);
+                [cons_vert, vars_vert] = obj.vertex_qmi(Y, Z, thv, C, D, F);
                 
                 cons = [cons; cons_vert];
                 vars.a(v) = vars_vert.a;
                 vars.b(v) = vars_vert.b;
                 vars.M{v} = vars_vert.M;                
                 vars.Cv{v} = vars_vert.Cv;
+                vars.Zmat{v} = vars_vert.Zmat;
                 
             end
             
         end
         
-        function [out] = solve_program(obj, cons, objective, vars)
-            %run the program
-            sol = optimize(cons, objective, obj.opts);
-            out.sol = sol;
-            
-            if sol.problem==0
-                %successful trajectory execution
-                out = obj.recover(vars, sol);
-            end
-        end           
         
         %% helper routines        
-        function [cons_vert, vars_vert] = vertex_qmi(obj, Y, thv);
+        function [cons_vert, vars_vert] = vertex_qmi(obj, Y, Z, thv,  C, D, F);
             %VERTEX_QMI: find the QMI associated with subsystem stabilization
-            %at the parameter vertex thv
+            %at the parameter vertex thv            
             
             %find sizes
             n = obj.traj.n;
@@ -110,12 +92,16 @@ classdef lpvstab
                       -vM', zeros(m, m), M;
                       zeros(n, L*n), M', Y];
                   
-            CT = blkdiag(Y-b*eye(n), CT_bot);
+            CT = blkdiag(Y-b*eye(n)-F*F', CT_bot);
             Cv = CT - a*obj.Psi_E;
             
 %             sCT = size(sCT, 1); %should be (L+2)n + m
-            cons_vert = [Cv >= 0; a >= 0; b>=obj.delta];
-            vars_vert = struct('M', M, 'a', a, 'b', b, 'Cv', Cv);
+
+            Zmat = [Z, C*Y + D*M; (C*Y + D*M)', Y];
+            
+
+            cons_vert = [Cv >= 0; a >= 0; b>=obj.delta; Zmat >= 0];
+            vars_vert = struct('M', M, 'a', a, 'b', b, 'Cv', Cv, 'Zmat', Zmat);
         end
         
         function out = recover(obj, vars, sol)
@@ -135,9 +121,14 @@ classdef lpvstab
             out.M = cell(Nv, 1);
             out.Cv = cell(Nv, 1);
             
+            out.Z = value(vars.Z);
+            out.h2 = sqrt(trace(out.Z));
+%             out.gamma = sqrt(value(vars.gamma2));
             
+            Nz = size(vars.Z, 1);
             out.eig_Y = eig(out.Y);
             sv = size(vars.Cv{1}, 1);
+            out.eig_Cv = zeros(sv, Nv);
             out.eig_Cv = zeros(sv, Nv);
             for v = 1:Nv
                 out.M{v} = value(vars.M{v});

@@ -18,7 +18,7 @@ Tmax = 35;
 
 
 epsilon = 0.1;
-% epsilon = 0.25;
+% epsilon = 0.15; %0.15 also works, but 0.2 does not.
 LS = lpvsim(n, m, L, epsilon);
 % traj = LS.sim(Tmax);
 
