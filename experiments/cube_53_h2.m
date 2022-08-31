@@ -1,4 +1,4 @@
-%generate the trajectory
+
 rng(45, 'twister');
 n = 5;
 m = 3;
@@ -34,29 +34,22 @@ traj = LS.sim(Tmax);
 
 
 %run QMI solver
-LP = lpvstab(traj);
+% LP = lpvstab(traj);
+% 
+% out = LP.stab(Th_vert);
+% 
+% out.sol.problem
 
-out = LP.stab(Th_vert);
+Q = eye(n);
+R = eye(m)*2;
 
-out.sol.problem
+C = [sqrt(Q); zeros(m, n)];
+D = [zeros(n, m); sqrt(R)];
+% F = [1; 0]*0.1;
+F = eye(n)*0.2;
 
-%H2 control
+H2 = lpvh2(traj);
 
-%% acquire samples
 
-%% validate samples
-if ~out.sol.problem
-Nsys = 10;
-sys_smp = LS.sample_sys(traj, Nsys);
-
-    [valid, eig_out] = LP.validate_stab_multi(sys_smp, Th_vert, out.K);
-end
-
-%% plot 
-% [k, av] = convhull(Th_vert');
-% figure(1)
-% Thk = Th_vert(:, k');
-% % trisurf(k', Thk(1, :), Thk(2, :), Thk(3, :))
-% scatter3(Thk(1, :), Thk(2, :), Thk(3, :), 400, 'filled')
-% % trisurf(Th_vert(
-%  [A,b,Aeq,beq]=vert2lcon(Th_vert,TOL)
+out = H2.h2(Th_vert, C, D, F);
+disp(out.sol.problem)
