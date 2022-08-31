@@ -22,7 +22,7 @@ c = Pth(th_in);
 %form the controller
 K_th= zeros(size(K{1}));
 for v = 1:length(c)
-    K_th = K{v}*c(v);
+    K_th = K_th + K{v}*c(v);
 end
 
 end
