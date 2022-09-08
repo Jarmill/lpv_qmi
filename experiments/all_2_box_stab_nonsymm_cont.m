@@ -1,3 +1,5 @@
+%continuous-time stabilization
+
 %generate the trajectory
 SOLVE = 1;
 SAMPLE = 0;
