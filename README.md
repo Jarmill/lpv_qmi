@@ -7,6 +7,14 @@ A gain scheduling controller is synthesized by enforcing a QMI at each vertex of
 
 The code is currently constructed for elementwise-L2 noise, but other types of noise models (energy bounds) may be enforced by modification of the QMIs.
 
+
+## Instructions
+Generate a trajectory (with elementwise-L2 noise of bound epsilon) using `lpvsim.sim`. Define the vertices of the polytope (such as a manual definition or using lcon2vert from https://www.mathworks.com/matlabcentral/fileexchange/30892-analyze-n-dimensional-convex-polyhedra). Pass the trajectory into the `lpvstab` object for discrete-time stabilization, and then attempt generation of a gain scheduled controller on these vertices with the method `lpvstab.stab`. 
+
+For continuous-time systems use `lpvstab_cont` rather than `lpvstab`.
+
+For H2 control in discrete-time, use `lpvh2` rather than `lpvstab`.
+
 ## Dependencies
 
 - YALMIP: https://yalmip.github.io/
