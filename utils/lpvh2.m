@@ -5,7 +5,7 @@ classdef lpvh2 < lpvstab
     %until otherwise implemented
     
     properties
-        
+        const_K = 0;
     end
     
     methods
@@ -52,6 +52,8 @@ classdef lpvh2 < lpvstab
             %storage of constraints
             cons = [(Y >= eye(obj.traj.n)*obj.delta); Z >= 0];
             %iterate through each subsystem and generate QMI
+            
+            cons_const = [];
             for v = 1:Nv
                 thv = Th_vert(:, v);
                 
@@ -62,9 +64,18 @@ classdef lpvh2 < lpvstab
                 vars.b(v) = vars_vert.b;
                 vars.M{v} = vars_vert.M;                
                 vars.Cv{v} = vars_vert.Cv;
-                vars.Zmat{v} = vars_vert.Zmat;
+                vars.Zmat{v} = vars_vert.Zmat;        
+                
+                if obj.const_K && (v>1)
+                    cons_const = [cons_const; vars.M{v}==vars.M{v-1}];
+                end
                 
             end
+            
+            cons = [cons; cons_const];
+            
+            
+            
             
         end
         

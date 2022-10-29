@@ -35,7 +35,7 @@ traj = LS.sim(Tmax);
 
 %run QMI solver
 LP = lpvstab(traj);
-
+% LP.const_K = 1;
 out = LP.stab(Th_vert);
 
 out.sol.problem

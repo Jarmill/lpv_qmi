@@ -19,6 +19,8 @@ classdef lpvstab
         
         opts = sdpsettings('solver', 'mosek');
 %         opts = sdpsettings('solver', 'cdcs');
+
+        const_K = 0;
     end
     
     methods
@@ -61,6 +63,7 @@ classdef lpvstab
             %storage of constraints
             cons = (Y >= eye(obj.traj.n)*obj.delta);
             %iterate through each subsystem and generate QMI
+            cons_const = [];
             for v = 1:Nv
                 thv = Th_vert(:, v);
                 
@@ -72,8 +75,13 @@ classdef lpvstab
                 vars.M{v} = vars_vert.M;                
                 vars.Cv{v} = vars_vert.Cv;
                 
+                if obj.const_K && (v>1)
+                    cons_const = [cons_const; vars.M{v}==vars.M{v-1}];
+                end
+                
             end
             
+            cons = [cons; cons_const];
         end
         
         function [out] = solve_program(obj, cons, objective, vars)

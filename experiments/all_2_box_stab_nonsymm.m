@@ -1,6 +1,6 @@
 %generate the trajectory
 SOLVE = 1;
-SAMPLE = 1;
+SAMPLE = 0;
 PLOT = 0;
 
 rng(40, 'twister');
@@ -36,7 +36,7 @@ traj = LS.sim(Tmax);
 %run QMI solver
 if SOLVE
 LP = lpvstab(traj);
-
+% LP.const_K = 1;
 out = LP.stab(Th_vert);
 disp(out.sol.problem)
 end

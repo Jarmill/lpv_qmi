@@ -1,6 +1,6 @@
 %generate the trajectory
 SOLVE = 1;
-SAMPLE = 1;
+SAMPLE = 0;
 PLOT = 0;
 
 rng(40, 'twister');
@@ -39,6 +39,8 @@ if SOLVE
 % LP = lpvstab(traj);
 H2 = lpvh2(traj);
 
+%constant controller
+% H2.const_K = 1;
 
 out = H2.h2(Th_vert, C, D, F);
 disp(out.sol.problem)
