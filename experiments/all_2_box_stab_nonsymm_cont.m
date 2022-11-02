@@ -2,9 +2,9 @@
 SOLVE = 1;
 SYSSAMPLE = 0;
 TRAJ = 0;
-PLOT = 0;
+PLOT = 1;
 
-rng(40, 'twister'\);
+rng(40, 'twister');
 n = 2;
 m = 2;
 L = 2;
@@ -96,8 +96,8 @@ for i = Nsys:-1:1
 end
 scatter(x0(1), x0(2), 300, 'ok')
 xlim([x0(1)-0.1, 0.1])
-xlabel('x_1')
-ylabel('x_2')
+xlabel('$x_1$', 'interpreter', 'latex')
+ylabel('$x_2$', 'interpreter', 'latex')
 title('1 Parameter Sequence', 'FontSize', 16)
 
 nexttile;
@@ -110,6 +110,6 @@ end
 scatter(x0(1), x0(2), 300, 'ok')
 title('30 Parameter Sequences', 'FontSize', 16)
 xlim([x0(1)-0.1, 0.1])
-xlabel('x_1')
-ylabel('x_2')
+xlabel('$x_1$', 'interpreter', 'latex')
+ylabel('$x_2$', 'interpreter', 'latex')
 end
