@@ -39,8 +39,8 @@ classdef lpvsim
         end
 
         function out = sim(obj, T, sys, x0)
-            %simulate an LPV trajectory with individual sample noise bound
-            %epsilon (L2 norm)
+            %simulate an continuous-time LPV trajectory with individual 
+            %sample noise bound epsilon (L2 norm)
             out = struct;
 
             if nargin < 2
@@ -53,9 +53,7 @@ classdef lpvsim
             if nargin < 4
                 x0 = zeros(obj.n, 1);
                 x0(1) = 1;
-            end
-
-            
+            end           
 
             
             X = [x0, zeros(obj.n, T)];
@@ -106,6 +104,101 @@ classdef lpvsim
             out.L = obj.L;
 
         end
+        
+        function out = sim_closed_cont(obj, sys, Kth, x0, T, mu)
+            %simulate an continuous-time controlled LPV trajectory 
+            %there is no sample noise here.
+            
+            %Kth(th): gain-scheduled controller at parameter value theta
+            out = struct;
+
+            if nargin < 5
+                T = 15;
+            end
+            if nargin < 6
+                mu = 0.3;
+            end
+
+            if nargin < 2
+                sys = obj.rand_sys();
+            end
+            
+            if nargin < 3
+                Kth = @(th) 0;
+            end
+            
+            if nargin < 4
+                x0 = zeros(obj.n, 1);
+                x0(1) = 1;
+            end           
+
+            X = [];
+            Th = [];
+            U = [];
+            
+%             X = [x0, zeros(obj.n, T)];
+%             U = zeros(obj.m, T);
+%             W_true = zeros(obj.n, T);
+%             Th = zeros(obj.L, T);
+%             %main simulation loop
+%             traj = {};
+            xprev = x0;
+%             trajcurr = struct;
+            tmax_curr = exprnd(mu);          
+            t_all = 0;
+            switch_times = 0;
+            while t_all < T
+                tmax_curr = min(t_all + tmax_curr, T);
+                %inputs
+                
+%                 wcurr = obj.sampler.w()*obj.epsilon;
+                thcurr = obj.sampler.th();
+                Kcurr = Kth(thcurr);
+                
+                %propagation 
+                Ath = 0;
+                for ell = 1:length(thcurr)
+                    Ath = sys.A{ell}*thcurr(ell);
+                end
+                
+                Acl = Ath + sys.B*Kcurr;
+                [tcurr, xcurr] = ode45(@(t, x) Acl*x, [0, tmax_curr], xprev);
+                
+
+     
+                X = [X, xcurr'];
+                U = [U, Kcurr*xcurr'];
+                Th = [Th, thcurr];
+                %storage
+%                 X(:, i+1) = xnext;
+%                 U(:, i) = ucurr;
+%                 W_true(:, i) = wcurr;
+%                 Th(:, i) = thcurr;
+                xprev = xcurr(end, :)';
+                t_all = t_all + tmax_curr;
+                switch_times = [switch_times; tmax_curr];
+            end
+            
+
+            ground_truth = struct;
+            ground_truth.A = sys.A;
+            ground_truth.B = sys.B;
+            
+%             struct('W', W_true, 'A', sys.A, 'B', sys.B)
+
+            %package up the output
+            out.X = X;
+            out.U = U;
+            out.Th = Th;    
+            out.ground_truth = ground_truth;
+            out.n = obj.n;
+            out.m = obj.m;
+            out.L = obj.L;
+            out.switch_times  = switch_times ;
+
+        end
+
+        %% generate sample plants inside the consistency set
         
         function sys_lpv = rand_sys(obj, A_scale)
 
@@ -184,13 +277,9 @@ classdef lpvsim
                 sys_curr.W = value(W);
                 sys_curr.Wnorm = sqrt(sum(value(W).^2, 1));
                 sys_smp{i} = sys_curr;
-            end
-
-
-            
+            end           
         end
-        
-        
+              
 
 
     

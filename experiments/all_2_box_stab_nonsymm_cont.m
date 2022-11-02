@@ -1,11 +1,10 @@
-%continuous-time stabilization
-
 %generate the trajectory
 SOLVE = 1;
-SAMPLE = 0;
+SYSSAMPLE = 0;
+TRAJ = 0;
 PLOT = 0;
 
-rng(40, 'twister');
+rng(40, 'twister'\);
 n = 2;
 m = 2;
 L = 2;
@@ -37,14 +36,14 @@ traj = LS.sim(Tmax);
 % Th_vert = Th_vert + [0; 0.5];
 %run QMI solver
 if SOLVE
-% LP = lpvstab(traj);
-
 LP = lpvstab_cont(traj);
-
+% LP.const_K = 1;
 out = LP.stab(Th_vert);
 disp(out.sol.problem)
 end
-if SAMPLE
+
+%% sample plants
+if SYSSAMPLE
 %% acquire samples
 Nsys = 15;
 sys_smp = LS.sample_sys(traj, Nsys);
@@ -55,44 +54,62 @@ if ~isempty(out)
 end
 end
 
-%% plot sample trajectories
-if PLOT
-    %% test out the interpolating controller
-[L, Nv] = size(Th_vert);
+%% sample a trajectory
+if TRAJ
+    x0 = [-2; 1.5];
+    sys_all = [{traj.ground_truth}; sys_smp];
 
+%     sys_test = sys_smp{8};
 
-% th = sdpvar(L, 1);
-% c = sdpvar(Nv, 1);
-% 
-% cons = [c>=0; sum(c)==1; Th_vert*c==th];
-% Pth = optimizer(cons, 0, sdpsettings('solver', 'mosek'), th, c);
 Pth = get_vertex_interp(Th_vert);
-th_test = [1; 0.4];
+Kth = @(th) K_interp(Pth, out.K, th); %interpolating controller
 
-Kth = @(th) K_interp(Pth, out.K, th);
-
-% uth = @(th, x) Kth(th)*x;
-
-
-LS.sampler.u = @(th,x) Kth(th)*x;
-
-%% plot a trajectory
-
-Ntraj = 100;
-
-x0 = [2; 1];
-figure(3)
+Ntraj = 30;
+traj_cont = cell(Nsys+1, Ntraj);
+T_cont = 4;
+mu_cont = 0.05;
+for i = 1:Nsys+1
+    rng(40, 'twister');
+    for j = 1:Ntraj        
+        traj_cont{i, j} = LS.sim_closed_cont(sys_all{i}, Kth, x0, T_cont, mu_cont);    
+    end
+end
+end
+%% plot the trajectory
+if PLOT
+figure(1)
 clf
 hold on
-for i = 1:Ntraj
-    traj_closed = LS.sim(Tmax, traj.ground_truth, x0);
-
-    plot(traj_closed.X(1, :), traj_closed.X(2, :))
+c = linspecer(2);
+tiledlayout(2, 1);
+nexttile;
+hold on
+for i = Nsys:-1:1
+    for j = 1:1
+        if i>1
+            ccurr = c(1, :);
+        else
+            ccurr = c(2, :);
+        end
+        plot(traj_cont{i, j}.X(1, :), traj_cont{i, j}.X(2, :), 'color', ccurr, 'linewidth', 2)
+    end
 end
-scatter(traj_closed.X(1, 1), traj_closed.X(2,1), 200, 'ok')
-
+scatter(x0(1), x0(2), 300, 'ok')
+xlim([x0(1)-0.1, 0.1])
 xlabel('x_1')
-ylabel('y_1')
+ylabel('x_2')
+title('1 Parameter Sequence', 'FontSize', 16)
 
-
+nexttile;
+hold on
+for i = 1:Nsys
+    for j = 1:Ntraj
+        plot(traj_cont{i, j}.X(1, :), traj_cont{i, j}.X(2, :), 'color', c(1, :))
+    end
+end
+scatter(x0(1), x0(2), 300, 'ok')
+title('30 Parameter Sequences', 'FontSize', 16)
+xlim([x0(1)-0.1, 0.1])
+xlabel('x_1')
+ylabel('x_2')
 end
