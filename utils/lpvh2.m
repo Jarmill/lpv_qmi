@@ -1,12 +1,10 @@
 classdef lpvh2 < lpvstab
-    %LPVSTAB stabilizing control of LPV systems using QMIs    
+    %worst-case H2-optimal control of LPV systems using QMIs    
+    %(discrete time)
     
     %in experiments, stick with individual sample noise bounds.
     %until otherwise implemented
     
-    properties
-        const_K = 0;
-    end
     
     methods
         function obj = lpvh2(traj)

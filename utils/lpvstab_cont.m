@@ -40,12 +40,7 @@ classdef lpvstab_cont < lpvstab
 %             vM = kron(thv, M');
             
             %form the controller matrix
-%             CT_bot = [-v2Y, -vM, zeros(L*n, n);
-%                       -vM', zeros(m, m), M;
-%                       zeros(n, L*n), M', Y];
-%                   
-%             CT = blkdiag(Y-b*eye(n), CT_bot);
-            CT = [zeros(n), CT_row'; CT_row, zeros(n*(L) + m)];
+            CT = [zeros(n)-b*eye(n), CT_row'; CT_row, zeros(n*(L) + m)];
 
             Cv = CT - a*obj.Psi;
             

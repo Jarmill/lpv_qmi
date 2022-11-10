@@ -62,6 +62,7 @@ classdef lpvstab
             
             %storage of constraints
             cons = (Y >= eye(obj.traj.n)*obj.delta);
+            cons = [cons; trace(Y)==1];
             %iterate through each subsystem and generate QMI
             cons_const = [];
             for v = 1:Nv

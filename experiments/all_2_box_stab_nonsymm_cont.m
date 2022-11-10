@@ -1,7 +1,7 @@
 %generate the trajectory
 SOLVE = 1;
-SYSSAMPLE = 0;
-TRAJ = 0;
+SYSSAMPLE = 1;
+TRAJ = 1;
 PLOT = 1;
 
 rng(40, 'twister');
