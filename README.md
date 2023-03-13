@@ -22,4 +22,8 @@ For H2 control in discrete-time, use `lpvh2` rather than `lpvstab`.
 
 All code is written and tested on Matlab R2021a.
 
+## Reference
+
+https://ieeexplore.ieee.org/abstract/document/9971732
+
 
